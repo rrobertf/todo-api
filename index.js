@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 
 app.use(express.json())
+app.use(express.static('public'))
 
 let tareas = []
 let nextId = 1
@@ -29,6 +30,9 @@ app.delete('/tareas/:id', (req, res) => {
   if (index === -1) return res.status(404).json({ error: 'Tarea no encontrada' })
   tareas.splice(index, 1)
   res.json({ mensaje: 'Tarea eliminada' })
+})
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html')
 })
 
 app.listen(3000, () => {
