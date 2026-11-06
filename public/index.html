@@ -533,7 +533,7 @@
         </div>
         <div>
           <div class="section-label mb-2">Contraseña</div>
-          <input type="password" id="regPassword" class="field" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password" required>
+          <input type="password" id="regPassword" class="field" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required>
         </div>
         <div>
           <div class="section-label mb-2">Confirmar contraseña</div>
@@ -633,8 +633,12 @@
 ═══════════════════════════════════════════ -->
 <script>
   // ── State ─────────────────────────────────────────
-  let token     = localStorage.getItem('vt_token')
-  let userEmail = localStorage.getItem('vt_email')
+  let token     = sessionStorage.getItem('vt_token') || localStorage.getItem('vt_token')
+  let userEmail = sessionStorage.getItem('vt_email') || localStorage.getItem('vt_email')
+  localStorage.removeItem('vt_token')
+  localStorage.removeItem('vt_email')
+  if (token) sessionStorage.setItem('vt_token', token)
+  if (userEmail) sessionStorage.setItem('vt_email', userEmail)
   let tareas    = []
   let filtro    = 'todas'
 
@@ -704,8 +708,8 @@
 
       token     = data.token
       userEmail = email
-      localStorage.setItem('vt_token', token)
-      localStorage.setItem('vt_email', email)
+      sessionStorage.setItem('vt_token', token)
+      sessionStorage.setItem('vt_email', email)
       mostrarApp()
     } catch {
       mostrarBanner('loginError', 'No se pudo conectar al servidor')
@@ -719,6 +723,9 @@
     const email    = document.getElementById('regEmail').value.trim()
     const password = document.getElementById('regPassword').value
     const confirm  = document.getElementById('regConfirm').value
+
+    if (password.length < 8 || new TextEncoder().encode(password).length > 72)
+      return mostrarBanner('regError', 'La contraseña requiere mínimo 8 caracteres y máximo 72 bytes')
 
     if (password !== confirm)
       return mostrarBanner('regError', 'Las contraseñas no coinciden')
@@ -743,15 +750,15 @@
 
   // ── Logout ────────────────────────────────────────
   function logout() {
-    localStorage.removeItem('vt_token')
-    localStorage.removeItem('vt_email')
+    sessionStorage.removeItem('vt_token')
+    sessionStorage.removeItem('vt_email')
     token = null; userEmail = null; tareas = []
     mostrarAuth()
   }
 
   // ── Auth headers ──────────────────────────────────
   function headers(withContent = false) {
-    const h = { 'authorization': token }
+    const h = { 'authorization': `Bearer ${token}` }
     if (withContent) h['Content-Type'] = 'application/json'
     return h
   }
